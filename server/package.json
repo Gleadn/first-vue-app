@@ -16,6 +16,10 @@
     "seed": "node scripts/seedDatabase.js",
     "seed:new": "node scripts/seedDatabase.js"
   },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",

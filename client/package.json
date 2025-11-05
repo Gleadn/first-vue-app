@@ -16,6 +16,10 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix",
     "type-check": "vue-tsc --noEmit"
   },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {
     "@fontsource/roboto": "5.2.7",
     "@mdi/font": "7.4.47",
