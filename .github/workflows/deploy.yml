@@ -15,7 +15,7 @@ on:
         default: false
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
   PRODUCTION_URL: ${{ secrets.PROD_API_URL }}
 
 jobs:
@@ -94,7 +94,10 @@ jobs:
     # Build Frontend
     - name: Install frontend dependencies
       working-directory: ./client
-      run: npm ci --only=production
+      run: |
+        npm ci --only=production
+        # Force reinstall rollup native dependencies for Node.js 20
+        npm rebuild @rollup/rollup-linux-x64-gnu --optional
     
     - name: Build frontend for production
       working-directory: ./client

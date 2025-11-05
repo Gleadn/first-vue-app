@@ -5,7 +5,7 @@ on:
     branches: [ develop ]
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
   STAGING_URL: ${{ secrets.STAGING_API_URL }}
 
 jobs:
@@ -38,7 +38,10 @@ jobs:
     # Build Frontend pour staging
     - name: Install frontend dependencies
       working-directory: ./client
-      run: npm ci
+      run: |
+        npm ci
+        # Force reinstall rollup native dependencies for Node.js 20
+        npm rebuild @rollup/rollup-linux-x64-gnu --optional
     
     - name: Build frontend for staging
       working-directory: ./client
