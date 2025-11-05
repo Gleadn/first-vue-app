@@ -11,7 +11,7 @@ COPY client/vite.config.mjs ./
 COPY client/jsconfig.json ./
 
 # Installer les dépendances client
-RUN npm ci --only=production
+RUN if [ -f package-lock.json ]; then npm ci --only=production; else npm install --only=production; fi
 
 # Copier le code source client
 COPY client/src/ ./src/
@@ -26,22 +26,20 @@ FROM node:20-alpine AS test
 
 WORKDIR /app
 
-# Installer les dépendances server pour les tests
+# Copier et installer les dépendances server pour les tests
 COPY server/package*.json ./server/
-RUN cd server && npm ci
+RUN cd server && if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-# Installer les dépendances client pour les tests
+# Copier et installer les dépendances client pour les tests  
 COPY client/package*.json ./client/
-RUN cd client && npm ci
+RUN cd client && if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copier le code source
 COPY server/ ./server/
 COPY client/ ./client/
 
-# Copier le build frontend
-COPY --from=frontend-builder /app/client/dist ./client/dist
-
-# Commande par défaut pour les tests
+# Commande par défaut pour les tests (tests backend)
+WORKDIR /app/server
 CMD ["npm", "test"]
 
 # Stage 3: Production
@@ -62,7 +60,7 @@ USER express
 
 # Copier et installer les dépendances serveur
 COPY --chown=express:nodejs server/package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN if [ -f package-lock.json ]; then npm ci --only=production; else npm install --only=production; fi && npm cache clean --force
 
 # Copier le code serveur
 COPY --chown=express:nodejs server/ ./

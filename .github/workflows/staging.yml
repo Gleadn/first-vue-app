@@ -121,7 +121,7 @@ jobs:
     needs: [build-for-staging, staging-database-migration]
     environment: 
       name: staging
-      url: ${{ secrets.STAGING_API_URL }}
+      url: https://staging.votre-app.com
     
     outputs:
       deployment-url: ${{ steps.deploy.outputs.url }}
