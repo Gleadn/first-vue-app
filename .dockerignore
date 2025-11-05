@@ -1,0 +1,93 @@
+# Fichiers et dossiers à ignorer lors du build Docker
+
+# Dépendances
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers de build et distribution
+dist/
+build/
+.output/
+
+# Fichiers d'environnement (sauf .env.example)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+
+# Cache
+.npm/
+.yarn/
+.cache/
+.temp/
+.tmp/
+
+# IDE et éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Tests
+coverage/
+.nyc_output/
+test-results/
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Configuration de développement
+.eslintrc*
+.prettierrc*
+jest.config.*
+# vite.config.mjs - needed for Vue.js build
+# jsconfig.json - needed for Vue.js build
+tsconfig.json
+
+# Fichiers temporaires
+*.pid
+*.seed
+*.pid.lock
+
+# SSL et certificats
+ssl/
+*.pem
+*.key
+*.crt
+
+# Base de données locale
+*.sqlite
+*.db
+
+# Autres
+.nuxt/
+.next/
+.vercel/

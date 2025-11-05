@@ -1,0 +1,112 @@
+.auth-container {
+  height: calc(100vh - 105px);
+  background-color: var(--color-bg-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
+}
+
+.auth-form {
+  background: var(--color-bg-primary);
+  padding: var(--spacing-4xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: var(--form-max-width);
+  border: 1px solid var(--color-border);
+}
+
+.auth-form h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-3xl);
+  color: var(--color-text) !important;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.input-group {
+  margin-bottom: var(--spacing-xl);
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text) !important;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.input-group input {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text) !important;
+  transition: border-color var(--transition-normal);
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+}
+
+.input-group input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.submit-btn {
+  width: 100%;
+  padding: var(--spacing-md);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+  margin-bottom: var(--spacing-xl);
+}
+
+.submit-btn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.toggle-btn {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: none;
+  color: var(--color-text) !important;
+  border: none;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color var(--transition-normal);
+}
+
+.toggle-btn:hover {
+  color: var(--color-primary) !important;
+}
+
+.message {
+  margin-top: 15px;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.message.success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
+}
+
+.message.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error-border);
+}

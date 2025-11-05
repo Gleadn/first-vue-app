@@ -1,0 +1,249 @@
+.app-header {
+  background-color: var(--color-bg-dark);
+  color: white;
+  height: var(--header-height);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--spacing-sm);
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.logo-placeholder {
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.app-name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  color: white;
+  white-space: nowrap;
+}
+
+.actions-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.search-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+  max-width: 500px;
+  margin: 0 var(--spacing-lg);
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.cart-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+}
+
+.cart-btn:hover {
+  background-color: var(--color-white-hover);
+}
+
+.cart-btn:active {
+  transform: scale(0.95);
+}
+
+.cart-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) 40px;
+  background-color: white;
+  color: black;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: all var(--transition-normal);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.search-input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-placeholder);
+  pointer-events: none;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+}
+
+.header-btn:hover {
+  background-color: var(--color-white-hover);
+}
+
+.header-btn:active {
+  transform: translateY(1px);
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.profile-btn:hover {
+  background-color: var(--color-profile-hover);
+}
+
+.logout-btn:hover {
+  background-color: var(--color-logout-hover);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 var(--spacing-xs);
+  }
+  
+  .app-name {
+    font-size: var(--font-size-lg);
+  }
+  
+  .search-section {
+    margin: 0 var(--spacing-sm);
+    max-width: 300px;
+    gap: var(--spacing-sm);
+  }
+  
+  .cart-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .cart-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .search-input {
+    padding: var(--spacing-xs) var(--spacing-md) var(--spacing-xs) 35px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .search-icon {
+    width: 16px;
+    height: 16px;
+    left: 10px;
+  }
+  
+  .header-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+  
+  .btn-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-section {
+    margin: 0 var(--spacing-xs);
+    max-width: 200px;
+    gap: var(--spacing-xs);
+  }
+  
+  .cart-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .cart-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .search-input {
+    padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-xs) 30px;
+  }
+  
+  .search-icon {
+    width: 14px;
+    height: 14px;
+    left: 8px;
+  }
+  
+  .header-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .header-btn span {
+    display: none;
+  }
+  
+  .actions-section {
+    gap: var(--spacing-sm);
+  }
+}

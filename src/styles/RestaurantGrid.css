@@ -1,0 +1,155 @@
+.restaurant-grid-container {
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg-primary);
+}
+
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.restaurant-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.restaurant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-focus);
+}
+
+.restaurant-card:active {
+  transform: translateY(0);
+}
+
+.restaurant-image-placeholder {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.restaurant-image-placeholder::before {
+  content: '🍽️';
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.restaurant-info {
+  padding: var(--spacing-md);
+}
+
+.restaurant-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text) !important;
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: 1.3;
+}
+
+.restaurant-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-icon {
+  width: 16px;
+  height: 16px;
+  color: #ddd;
+  transition: color var(--transition-fast);
+}
+
+.star-icon.filled {
+  color: #ffd700;
+}
+
+.star-icon.half-filled {
+  color: #ffd700;
+}
+
+.rating-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-light) !important;
+}
+
+.rating-votes {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-placeholder) !important;
+  margin-left: 2px;
+}
+
+/* Media queries pour la responsivité */
+@media (max-width: 1200px) {
+  .restaurant-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 900px;
+  }
+}
+
+@media (max-width: 900px) {
+  .restaurant-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    max-width: 600px;
+  }
+  
+  .restaurant-grid-container {
+    padding: var(--spacing-md);
+  }
+  
+  .restaurant-image-placeholder {
+    height: 160px;
+  }
+  
+  .restaurant-image-placeholder::before {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .restaurant-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+    max-width: 400px;
+  }
+  
+  .restaurant-grid-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .restaurant-image-placeholder {
+    height: 140px;
+  }
+  
+  .restaurant-image-placeholder::before {
+    font-size: 2rem;
+  }
+  
+  .restaurant-name {
+    font-size: var(--font-size-base);
+  }
+  
+  .restaurant-info {
+    padding: var(--spacing-sm);
+  }
+}

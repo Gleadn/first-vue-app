@@ -1,0 +1,45 @@
+{
+  "name": "my-first-app",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server/app.js",
+    "server:dev": "nodemon server/app.js",
+    "start": "node server/app.js",
+    "seed": "node server/scripts/seedDatabase.js",
+    "seed:new": "node server/scripts/seedDatabase.js"
+  },
+  "dependencies": {
+    "@fontsource/roboto": "5.2.7",
+    "@mdi/font": "7.4.47",
+    "@vue/cli-service": "^5.0.9",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.3",
+    "vue": "^3.5.22",
+    "vuetify": "^3.10.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "nodemon": "^3.1.10",
+    "sass-embedded": "^1.92.1",
+    "unplugin-fonts": "^1.4.0",
+    "unplugin-vue-components": "^29.0.0",
+    "vite": "^7.1.5",
+    "vite-plugin-vuetify": "^2.1.2"
+  },
+  "description": "This is the official scaffolding tool for Vuetify, designed to give you a head start in building your new Vuetify application. It sets up a base template with all the necessary configurations and standard directory structure, enabling you to begin development without the hassle of setting up the project from scratch.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
