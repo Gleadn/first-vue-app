@@ -12,6 +12,9 @@ COPY client/package.json ./client/
 # Installer toutes les dépendances du workspace
 RUN npm ci --only=production
 
+# Forcer l'installation des binaires Rollup pour le build frontend
+RUN npm rebuild && npm install @rollup/rollup-linux-x64-gnu --optional --no-save
+
 # Copier les fichiers de configuration client
 COPY client/vite.config.mjs ./client/
 COPY client/jsconfig.json ./client/
