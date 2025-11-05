@@ -32,9 +32,11 @@ WORKDIR /app
 
 # Copier les fichiers package du workspace racine
 COPY package*.json ./
+COPY client/package.json ./client/
+COPY server/package.json ./server/
 
-# Installer toutes les dépendances du workspace (client + server)
-RUN npm ci
+# Installer toutes les dépendances du workspace (y compris devDependencies pour les tests)
+RUN npm ci --include=dev
 
 # Copier le code source après installation
 COPY client/ ./client/
