@@ -79,7 +79,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+        # Désactiver le cache pour éviter les problèmes Rollup
+        # cache: 'npm'
     
     - name: Generate build version
       id: version
@@ -95,9 +96,11 @@ jobs:
     - name: Install frontend dependencies
       working-directory: ./client
       run: |
-        npm ci --only=production
-        # Force reinstall rollup native dependencies for Node.js 20
-        npm rebuild @rollup/rollup-linux-x64-gnu --optional
+        # Nettoyer complètement pour éviter les problèmes Rollup
+        rm -rf node_modules package-lock.json
+        npm install --only=production
+        # Forcer la réinstallation des binaires natifs
+        npm rebuild
     
     - name: Build frontend for production
       working-directory: ./client

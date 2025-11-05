@@ -23,7 +23,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+        # Désactiver le cache pour éviter les problèmes Rollup frontend
+        # cache: 'npm'
     
     - name: Install backend dependencies
       working-directory: ./server
@@ -36,9 +37,11 @@ jobs:
     - name: Install frontend dependencies
       working-directory: ./client
       run: |
-        npm ci
-        # Force reinstall rollup native dependencies for Node.js 20
-        npm rebuild @rollup/rollup-linux-x64-gnu --optional
+        # Nettoyer complètement pour éviter les problèmes Rollup
+        rm -rf node_modules package-lock.json
+        npm install
+        # Forcer la réinstallation des binaires natifs Rollup
+        npm rebuild
     
     - name: Lint frontend code
       working-directory: ./client
@@ -146,15 +149,18 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: client/package-lock.json
+        # Désactiver le cache pour éviter les problèmes Rollup
+        # cache: 'npm'
+        # cache-dependency-path: client/package-lock.json
     
     - name: Install dependencies
       working-directory: ./client
       run: |
-        npm ci
-        # Force reinstall rollup native dependencies for Node.js 20
-        npm rebuild @rollup/rollup-linux-x64-gnu --optional
+        # Nettoyer complètement pour éviter les problèmes Rollup
+        rm -rf node_modules package-lock.json
+        npm install
+        # Forcer la réinstallation des binaires natifs Rollup
+        npm rebuild
     
     - name: Build frontend application
       working-directory: ./client
