@@ -9,11 +9,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY client/package.json ./client/
 
-# Installer toutes les dépendances du workspace
-RUN npm ci --only=production
+# Installer toutes les dépendances du workspace (y compris devDependencies pour le build)
+RUN npm ci
 
-# Forcer l'installation des binaires Rollup pour le build frontend
-RUN npm rebuild && npm install @rollup/rollup-linux-x64-gnu --optional --no-save
+# Forcer la réinstallation des binaires Rollup pour éviter les problèmes natifs
+RUN npm rebuild
 
 # Copier les fichiers de configuration client
 COPY client/vite.config.mjs ./client/
