@@ -1,0 +1,51 @@
+{
+  "name": "restaurant-app-client",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npm run preview",
+    "test": "vitest run",
+    "test:unit": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "cypress run",
+    "test:e2e:dev": "cypress open",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/roboto": "5.2.7",
+    "@mdi/font": "7.4.47",
+    "@vue/cli-service": "^5.0.9",
+    "vue": "^3.5.22",
+    "vuetify": "^3.10.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^0.34.6",
+    "@vue/eslint-config-prettier": "^9.0.0",
+    "@vue/test-utils": "^2.4.1",
+    "cypress": "^13.6.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.33.0",
+    "jsdom": "^22.1.0",
+    "prettier": "^3.0.3",
+    "sass-embedded": "^1.92.1",
+    "typescript": "^5.2.2",
+    "unplugin-fonts": "^1.4.0",
+    "unplugin-vue-components": "^29.0.0",
+    "vite": "^7.1.5",
+    "vite-plugin-vuetify": "^2.1.2",
+    "vitest": "^0.34.6",
+    "vue-eslint-parser": "^10.2.0",
+    "vue-tsc": "^1.8.8"
+  },
+  "description": "This is the official scaffolding tool for Vuetify, designed to give you a head start in building your new Vuetify application. It sets up a base template with all the necessary configurations and standard directory structure, enabling you to begin development without the hassle of setting up the project from scratch.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

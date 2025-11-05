@@ -4,19 +4,19 @@ services:
   # Base de données MongoDB
   mongodb:
     image: mongo:7.0
-    container_name: vue-app-mongodb
+    container_name: restaurant-mongodb
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
-      MONGO_INITDB_DATABASE: ${MONGODB_DB_NAME:-bibliotheque}
+      MONGO_INITDB_DATABASE: ${MONGODB_DB_NAME:-restaurant_db}
     volumes:
       - mongodb_data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
     networks:
-      - vue-app-network
+      - restaurant-network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 30s
@@ -24,82 +24,41 @@ services:
       retries: 3
       start_period: 40s
 
-  # Application Vue.js + Express
-  vue-app:
+  # Backend Express.js
+  server:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: vue-app-server
+      target: production
+    container_name: restaurant-server
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/bibliotheque?authSource=admin
-      - MONGODB_DB_NAME=${MONGODB_DB_NAME:-bibliotheque}
-      - JWT_SECRET=${JWT_SECRET:-votre_secret_jwt_super_securise_changez_en_production}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-15m}
-      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-30d}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000,http://localhost:3001}
-      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3000}
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password123}@mongodb:27017/${MONGODB_DB_NAME:-restaurant_db}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     ports:
-      - "3001:3001"
+      - "3000:3000"
     depends_on:
       mongodb:
         condition: service_healthy
     networks:
-      - vue-app-network
+      - restaurant-network
     volumes:
       - ./logs:/app/logs
     healthcheck:
-      test: ["CMD", "node", "server/healthcheck.js"]
+      test: ["CMD", "node", "healthcheck.js"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # Serveur web Nginx (optionnel pour la production)
-  nginx:
-    image: nginx:alpine
-    container_name: vue-app-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - vue-app
-    networks:
-      - vue-app-network
-    profiles:
-      - production
+# Réseaux
+networks:
+  restaurant-network:
+    driver: bridge
 
-  # MongoDB Express pour l'administration (optionnel)
-  mongo-express:
-    image: mongo-express:latest
-    container_name: vue-app-mongo-express
-    restart: unless-stopped
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:-admin}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin123}
-    ports:
-      - "8081:8081"
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    networks:
-      - vue-app-network
-    profiles:
-      - development
-
+# Volumes persistants
 volumes:
   mongodb_data:
     driver: local
-
-networks:
-  vue-app-network:
-    driver: bridge

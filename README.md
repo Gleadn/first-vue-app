@@ -1,6 +1,59 @@
-# Vuetify (Default)
+# Restaurant Application
 
-This is the official scaffolding tool for Vuetify, designed to give you a head start in building your new Vuetify application. It sets up a base template with all the necessary configurations and standard directory structure, enabling you to begin development without the hassle of setting up the project from scratch.
+[![CI Status](https://github.com/Gleadn/first-vue-app/workflows/CI%20-%20Lint,%20Tests%20et%20Build/badge.svg)](https://github.com/Gleadn/first-vue-app/actions)
+
+Application full-stack moderne pour la gestion d'un restaurant, construite avec Vue.js 3 + Vuetify pour le frontend et Express.js + MongoDB pour le backend.
+
+## 🏗️ Architecture
+
+Ce projet suit une architecture monorepo avec CI/CD automatisé :
+
+```
+first-vue-app/
+├── .github/workflows/     # Pipelines CI/CD GitHub Actions
+├── client/               # Application Vue.js frontend
+├── server/               # API Express.js backend
+├── docker-compose.yml    # Environnement de développement
+├── Dockerfile           # Production containerisée
+└── DEPLOYMENT.md        # Guide de déploiement détaillé
+```
+
+## 🚀 Démarrage Rapide
+
+### Prérequis
+- Node.js 18+
+- MongoDB 7.0+
+- Docker (optionnel mais recommandé)
+
+### Installation
+
+```bash
+# Cloner le projet
+git clone <repository-url>
+cd first-vue-app
+
+# Avec Docker (recommandé)
+docker-compose up -d
+
+# Ou installation manuelle
+cd client && npm install
+cd ../server && npm install
+```
+
+### Développement
+
+```bash
+# Frontend (Vue.js)
+cd client
+npm run dev         # http://localhost:5173
+
+# Backend (Express.js)
+cd server
+npm run dev         # http://localhost:3000
+
+# Avec Docker
+docker-compose up -d
+```
 
 ## ❗️ Important Links
 

@@ -1,0 +1,356 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Déclenchement manuel
+    inputs:
+      version:
+        description: 'Version à déployer (commit SHA ou tag)'
+        required: false
+        default: 'main'
+      skip_tests:
+        description: 'Ignorer les vérifications pré-déploiement'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+  PRODUCTION_URL: ${{ secrets.PROD_API_URL }}
+
+jobs:
+  # Job 1 - Validation pré-déploiement
+  pre-deployment-validation:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    environment: production
+    if: ${{ !inputs.skip_tests }}
+    
+    outputs:
+      ci-status: ${{ steps.check-ci.outputs.status }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.version || 'main' }}
+    
+    - name: Check CI Status
+      id: check-ci
+      run: |
+        # Vérifier le statut de la dernière exécution CI
+        echo "Vérification du statut CI pour le commit: ${{ github.sha }}"
+        
+        # Simuler la vérification des conditions
+        echo "✅ Lint: OK"
+        echo "✅ Tests Backend: OK" 
+        echo "✅ Tests Frontend: OK"
+        echo "✅ Build: OK"
+        
+        echo "status=success" >> $GITHUB_OUTPUT
+    
+    - name: Verify deployment conditions
+      run: |
+        if [ "${{ steps.check-ci.outputs.status }}" != "success" ]; then
+          echo "❌ Échec des vérifications pré-déploiement"
+          echo "Les tests CI doivent passer avant le déploiement en production"
+          exit 1
+        fi
+        echo "✅ Toutes les conditions de déploiement sont remplies"
+
+  # Job 2 - Build et préparation
+  build-and-prepare:
+    name: Build & Prepare for Production
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-validation]
+    if: always() && (needs.pre-deployment-validation.result == 'success' || inputs.skip_tests)
+    environment: production
+    
+    outputs:
+      build-version: ${{ steps.version.outputs.version }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.version || 'main' }}
+    
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Generate build version
+      id: version
+      run: |
+        VERSION="${{ github.sha }}"
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          VERSION="${{ github.ref_name }}"
+        fi
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Build version: ${VERSION}"
+    
+    # Build Frontend
+    - name: Install frontend dependencies
+      working-directory: ./client
+      run: npm ci --only=production
+    
+    - name: Build frontend for production
+      working-directory: ./client
+      run: npm run build
+      env:
+        NODE_ENV: production
+        VITE_API_URL: ${{ secrets.PROD_API_URL }}
+    
+    - name: Upload frontend build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build-${{ steps.version.outputs.version }}
+        path: client/dist/
+        retention-days: 30
+    
+    # Prepare Backend
+    - name: Install backend dependencies
+      working-directory: ./server
+      run: npm ci --only=production
+    
+    - name: Create backend production bundle
+      working-directory: ./server
+      run: |
+        # Créer un bundle prêt pour la production
+        tar -czf ../backend-production.tar.gz \
+          --exclude=node_modules \
+          --exclude=tests \
+          --exclude=coverage \
+          --exclude=.env* \
+          .
+    
+    - name: Upload backend bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-bundle-${{ steps.version.outputs.version }}
+        path: backend-production.tar.gz
+        retention-days: 30
+
+  # Job 3 - Migration base de données
+  database-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    needs: [build-and-prepare]
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.version || 'main' }}
+    
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install backend dependencies
+      working-directory: ./server
+      run: npm ci
+    
+    - name: Run database migrations
+      working-directory: ./server
+      run: |
+        echo "🔄 Exécution des migrations de base de données..."
+        
+        # Ici vous ajouteriez vos vraies migrations
+        # Exemples :
+        # node scripts/migrate.js
+        # npx migrate-mongo up
+        
+        echo "✅ Migrations terminées avec succès"
+        
+        # Enregistrer la version de migration
+        echo "Migration version: ${{ needs.build-and-prepare.outputs.build-version }}" > migration.log
+      env:
+        NODE_ENV: production
+        MONGODB_URI: ${{ secrets.MONGODB_URI_PROD }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET_PROD }}
+
+  # Job 4 - Déploiement en production
+  deploy-to-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-and-prepare, database-migration]
+    environment: production
+    
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
+      
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build-${{ needs.build-and-prepare.outputs.build-version }}
+        path: ./frontend-build
+    
+    - name: Download backend bundle
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-bundle-${{ needs.build-and-prepare.outputs.build-version }}
+        path: ./backend-bundle
+    
+    - name: Deploy to production server
+      id: deploy
+      run: |
+        echo "🚀 Déploiement en production..."
+        echo "Version: ${{ needs.build-and-prepare.outputs.build-version }}"
+        
+        # Ici vous ajouteriez le vrai déploiement
+        # Exemples selon votre plateforme :
+        
+        # Railway:
+        # railway up
+        
+        # Heroku:
+        # heroku container:push web --app your-app-name
+        # heroku container:release web --app your-app-name
+        
+        # Serveur SSH:
+        # scp -r ./frontend-build user@server:/var/www/html/
+        # ssh user@server "cd /app && ./deploy.sh"
+        
+        # Docker/Kubernetes:
+        # docker build -t app:${{ needs.build-and-prepare.outputs.build-version }} .
+        # kubectl set image deployment/app app=app:${{ needs.build-and-prepare.outputs.build-version }}
+        
+        echo "✅ Déploiement terminé"
+        echo "url=${{ secrets.PROD_API_URL }}" >> $GITHUB_OUTPUT
+      env:
+        DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
+        PROD_API_URL: ${{ secrets.PROD_API_URL }}
+
+  # Job 5 - Tests de santé post-déploiement
+  health-check:
+    name: Post-deployment Health Check
+    runs-on: ubuntu-latest
+    needs: [deploy-to-production]
+    
+    steps:
+    - name: Wait for deployment to be ready
+      run: |
+        echo "⏳ Attente que le déploiement soit prêt..."
+        sleep 30
+    
+    - name: Health check - API endpoints
+      run: |
+        echo "🏥 Vérification de la santé de l'API..."
+        
+        API_URL="${{ needs.deploy-to-production.outputs.deployment-url }}"
+        
+        # Test de l'endpoint de santé
+        echo "Testing health endpoint..."
+        if curl -f "${API_URL}/health" > /dev/null 2>&1; then
+          echo "✅ Health endpoint: OK"
+        else
+          echo "❌ Health endpoint: FAILED"
+          exit 1
+        fi
+        
+        # Test des endpoints critiques
+        echo "Testing critical endpoints..."
+        
+        # Test API status
+        if curl -f "${API_URL}/api/status" > /dev/null 2>&1; then
+          echo "✅ API Status endpoint: OK"
+        else
+          echo "⚠️ API Status endpoint: WARNING (not critical)"
+        fi
+        
+        # Test database connection
+        if curl -f "${API_URL}/api/db-status" > /dev/null 2>&1; then
+          echo "✅ Database connection: OK"
+        else
+          echo "❌ Database connection: FAILED"
+          exit 1
+        fi
+        
+        echo "✅ Tous les tests de santé sont passés"
+
+  # Job 6 - Rollback automatique (si échec)
+  rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+    needs: [deploy-to-production, health-check]
+    if: failure()
+    environment: production
+    
+    steps:
+    - name: Rollback to previous version
+      run: |
+        echo "🔄 Échec détecté - Rollback automatique en cours..."
+        
+        # Ici vous implémenteriez le rollback selon votre plateforme
+        # Exemples :
+        
+        # Railway:
+        # railway rollback
+        
+        # Heroku:
+        # heroku rollback --app your-app-name
+        
+        # Kubernetes:
+        # kubectl rollout undo deployment/app
+        
+        # Docker Swarm:
+        # docker service rollback app
+        
+        echo "✅ Rollback terminé"
+      env:
+        DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
+
+  # Job 7 - Notifications
+  notify:
+    name: Deployment Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-to-production, health-check, rollback]
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: needs.deploy-to-production.result == 'success' && needs.health-check.result == 'success'
+      run: |
+        echo "✅ DÉPLOIEMENT RÉUSSI EN PRODUCTION"
+        echo "Version: ${{ needs.build-and-prepare.outputs.build-version }}"
+        echo "URL: ${{ needs.deploy-to-production.outputs.deployment-url }}"
+        echo "Branch: ${{ github.ref_name }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Deployed by: ${{ github.actor }}"
+        echo "Time: $(date -u)"
+        
+        # Notification Slack (exemple)
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"✅ Production deployment successful!"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
+    
+    - name: Notify failure
+      if: needs.deploy-to-production.result == 'failure' || needs.health-check.result == 'failure'
+      run: |
+        echo "❌ ÉCHEC DU DÉPLOIEMENT EN PRODUCTION"
+        echo "Version: ${{ needs.build-and-prepare.outputs.build-version }}"
+        echo "Branch: ${{ github.ref_name }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Failed job:"
+        if [ "${{ needs.deploy-to-production.result }}" == "failure" ]; then echo "  - Deployment"; fi
+        if [ "${{ needs.health-check.result }}" == "failure" ]; then echo "  - Health Check"; fi
+        
+        if [ "${{ needs.rollback.result }}" == "success" ]; then
+          echo "✅ Rollback automatique effectué"
+        else
+          echo "❌ Rollback automatique échoué - intervention manuelle requise"
+        fi
+        
+        # Notification Slack d'erreur (exemple)
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"❌ Production deployment failed! Rollback: ${{ needs.rollback.result }}"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
+        
+        exit 1

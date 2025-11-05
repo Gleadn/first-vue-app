@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: restaurant-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
+      MONGO_INITDB_DATABASE: ${MONGODB_DB_NAME:-restaurant_db}
+    volumes:
+      - mongodb_data_dev:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    ports:
+      - "27017:27017"
+    networks:
+      - restaurant-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Backend Express.js (développement)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: restaurant-server-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password123}@mongodb:27017/${MONGODB_DB_NAME:-restaurant_db}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - restaurant-network
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+
+  # Frontend Vue.js (développement)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: restaurant-client-dev
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+      VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3000}
+    ports:
+      - "5173:5173"
+    networks:
+      - restaurant-network
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+
+# Réseaux
+networks:
+  restaurant-network:
+    driver: bridge
+
+# Volumes persistants
+volumes:
+  mongodb_data_dev:
+    driver: local

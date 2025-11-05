@@ -1,0 +1,17 @@
+# Dockerfile de développement pour le serveur Express.js
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Installer nodemon globalement
+RUN npm install -g nodemon
+
+# Installer les dépendances
+COPY package*.json ./
+RUN npm install
+
+# Exposer le port
+EXPOSE 3000
+
+# Démarrer en mode développement avec nodemon
+CMD ["npm", "run", "dev"]

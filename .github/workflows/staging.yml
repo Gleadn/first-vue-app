@@ -1,0 +1,275 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [ develop ]
+
+env:
+  NODE_VERSION: '18'
+  STAGING_URL: ${{ secrets.STAGING_API_URL }}
+
+jobs:
+  # Job 1 - Build et préparation pour staging
+  build-for-staging:
+    name: Build for Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    outputs:
+      build-version: ${{ steps.version.outputs.version }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Generate build version
+      id: version
+      run: |
+        VERSION="staging-${{ github.sha }}"
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Staging build version: ${VERSION}"
+    
+    # Build Frontend pour staging
+    - name: Install frontend dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Build frontend for staging
+      working-directory: ./client
+      run: npm run build
+      env:
+        NODE_ENV: staging
+        VITE_API_URL: ${{ secrets.STAGING_API_URL }}
+    
+    - name: Upload frontend build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-staging-${{ steps.version.outputs.version }}
+        path: client/dist/
+        retention-days: 14
+    
+    # Prepare Backend pour staging
+    - name: Install backend dependencies
+      working-directory: ./server
+      run: npm ci
+    
+    - name: Create backend staging bundle
+      working-directory: ./server
+      run: |
+        tar -czf ../backend-staging.tar.gz \
+          --exclude=node_modules \
+          --exclude=tests \
+          --exclude=coverage \
+          --exclude=.env* \
+          .
+    
+    - name: Upload backend bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-staging-${{ steps.version.outputs.version }}
+        path: backend-staging.tar.gz
+        retention-days: 14
+
+  # Job 2 - Migration base de données staging
+  staging-database-migration:
+    name: Staging Database Migration
+    runs-on: ubuntu-latest
+    needs: [build-for-staging]
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install backend dependencies
+      working-directory: ./server
+      run: npm ci
+    
+    - name: Run staging database migrations
+      working-directory: ./server
+      run: |
+        echo "🔄 Exécution des migrations staging..."
+        
+        # Migrations pour staging (plus permissives qu'en production)
+        echo "✅ Migrations staging terminées"
+        
+        echo "Staging migration version: ${{ needs.build-for-staging.outputs.build-version }}" > migration-staging.log
+      env:
+        NODE_ENV: staging
+        MONGODB_URI: ${{ secrets.MONGODB_URI_STAGING }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET_STAGING }}
+
+  # Job 3 - Déploiement en staging
+  deploy-to-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-for-staging, staging-database-migration]
+    environment: 
+      name: staging
+      url: ${{ secrets.STAGING_API_URL }}
+    
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
+      
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-staging-${{ needs.build-for-staging.outputs.build-version }}
+        path: ./frontend-build
+    
+    - name: Download backend bundle
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-staging-${{ needs.build-for-staging.outputs.build-version }}
+        path: ./backend-bundle
+    
+    - name: Deploy to staging server
+      id: deploy
+      run: |
+        echo "🚀 Déploiement en staging..."
+        echo "Version: ${{ needs.build-for-staging.outputs.build-version }}"
+        
+        # Déploiement staging (similaire à production mais avec des URLs différentes)
+        # Exemples :
+        
+        # Railway staging:
+        # railway up --environment staging
+        
+        # Heroku staging:
+        # heroku container:push web --app your-app-staging
+        # heroku container:release web --app your-app-staging
+        
+        echo "✅ Déploiement staging terminé"
+        echo "url=${{ secrets.STAGING_API_URL }}" >> $GITHUB_OUTPUT
+      env:
+        STAGING_DEPLOYMENT_KEY: ${{ secrets.STAGING_DEPLOYMENT_KEY }}
+        STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+
+  # Job 4 - Tests de fumée staging
+  staging-smoke-tests:
+    name: Staging Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-to-staging]
+    
+    steps:
+    - name: Wait for staging deployment
+      run: |
+        echo "⏳ Attente que le déploiement staging soit prêt..."
+        sleep 20
+    
+    - name: Run smoke tests on staging
+      run: |
+        echo "🚬 Exécution des tests de fumée sur staging..."
+        
+        STAGING_URL="${{ needs.deploy-to-staging.outputs.deployment-url }}"
+        
+        # Tests de base
+        if curl -f "${STAGING_URL}/health" > /dev/null 2>&1; then
+          echo "✅ Staging health check: OK"
+        else
+          echo "❌ Staging health check: FAILED"
+          exit 1
+        fi
+        
+        # Tests spécifiques au staging
+        if curl -f "${STAGING_URL}/api/status" > /dev/null 2>&1; then
+          echo "✅ Staging API status: OK"
+        else
+          echo "⚠️ Staging API status: WARNING"
+        fi
+        
+        echo "✅ Tests de fumée staging réussis"
+        echo "🌐 Staging disponible à: ${STAGING_URL}"
+
+  # Job 5 - Notification staging
+  notify-staging:
+    name: Staging Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-to-staging, staging-smoke-tests]
+    if: always()
+    
+    steps:
+    - name: Notify staging success
+      if: needs.deploy-to-staging.result == 'success' && needs.staging-smoke-tests.result == 'success'
+      run: |
+        echo "✅ DÉPLOIEMENT STAGING RÉUSSI"
+        echo "Version: ${{ needs.build-for-staging.outputs.build-version }}"
+        echo "URL: ${{ needs.deploy-to-staging.outputs.deployment-url }}"
+        echo "Branch: develop"
+        echo "Commit: ${{ github.sha }}"
+        echo "Deployed by: ${{ github.actor }}"
+        echo "Ready for testing!"
+        
+        # Notification Slack staging (exemple)
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"✅ Staging deployment successful! Ready for testing: ${{ needs.deploy-to-staging.outputs.deployment-url }}"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
+    
+    - name: Notify staging failure
+      if: needs.deploy-to-staging.result == 'failure' || needs.staging-smoke-tests.result == 'failure'
+      run: |
+        echo "❌ ÉCHEC DU DÉPLOIEMENT STAGING"
+        echo "Version: ${{ needs.build-for-staging.outputs.build-version }}"
+        echo "Branch: develop"
+        echo "Commit: ${{ github.sha }}"
+        echo "Failed job:"
+        if [ "${{ needs.deploy-to-staging.result }}" == "failure" ]; then echo "  - Staging Deployment"; fi
+        if [ "${{ needs.staging-smoke-tests.result }}" == "failure" ]; then echo "  - Smoke Tests"; fi
+        
+        # Notification Slack d'erreur staging (exemple)
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"❌ Staging deployment failed! Branch: develop"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
+        
+        exit 1
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch,suffix=-staging
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        target: staging
+    
+    - name: Deploy to staging
+      run: |
+        echo "Déploiement en staging avec l'image: ${{ steps.meta.outputs.tags }}"
+        # Scripts de déploiement staging
+        # Exemples :
+        # - kubectl apply -f k8s/staging/
+        # - docker-compose -f docker-compose.staging.yml up -d
+      env:
+        DOCKER_IMAGE: ${{ steps.meta.outputs.tags }}
+        STAGING_URL: ${{ secrets.STAGING_URL }}
+    
+    - name: Run smoke tests
+      run: |
+        echo "Exécution des tests de fumée sur staging"
+        # Ici vous pouvez ajouter des tests de base pour vérifier que l'app fonctionne
+        # curl -f $STAGING_URL/health || exit 1
+    
+    - name: Notify staging deployment
+      run: |
+        echo "🚀 Application déployée en staging: https://staging.votre-app.com"
