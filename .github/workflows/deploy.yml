@@ -93,14 +93,15 @@ jobs:
         echo "Build version: ${VERSION}"
     
     # Build Frontend
-    - name: Install frontend dependencies
-      working-directory: ./client
+    - name: Install workspace dependencies
       run: |
-        # Nettoyer complètement pour éviter les problèmes Rollup
+        # Nettoyer complètement pour éviter les problèmes Rollup avec workspaces
         rm -rf node_modules package-lock.json
         npm install --only=production
-        # Forcer la réinstallation des binaires natifs
+        # Forcer la réinstallation des binaires natifs Rollup
         npm rebuild
+        # Installation spécifique de Rollup avec ses binaires natifs
+        npm install @rollup/rollup-linux-x64-gnu --optional --no-save
     
     - name: Build frontend for production
       working-directory: ./client
