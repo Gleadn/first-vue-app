@@ -13,6 +13,11 @@ const __dirname = path.dirname(__filename);
 // Charger les variables d'environnement
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+// Fonction utilitaire pour sélectionner des éléments aléatoires
+function pickRandom(arr, n = 1) {
+  return arr.sort(() => 0.5 - Math.random()).slice(0, n);
+}
+
 async function connectDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
@@ -59,10 +64,6 @@ export async function seedDatabase() {
   );
 
   console.log("🏪 Insertion des Restaurants...");
-
-  function pickRandom(arr, n = 1) {
-    return arr.sort(() => 0.5 - Math.random()).slice(0, n);
-  }
 
   const restaurantData = Array.from({ length: 18 }).map((_, i) => ({
     nom: `Restaurant ${i + 1}`,
