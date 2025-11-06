@@ -14,6 +14,14 @@ const __dirname = path.dirname(__filename);
 // Charger les variables d'environnement depuis la racine du projet
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+// Initialiser Sentry (importer le module de configuration puis appeler init)
+// Note: initSentry est explicitement appelé après dotenv.config() pour
+// s'assurer que les variables d'environnement sont disponibles.
+const sentryModule = await import('./config/sentry.js');
+const Sentry = sentryModule.default;
+sentryModule.initSentry();
+
+// Créer l'app Express après l'initialisation de Sentry
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -22,6 +30,9 @@ connectDB().catch(error => {
   console.error('Impossible de se connecter à la base de données:', error);
   process.exit(1);
 });
+
+// Middleware Sentry pour capturer les requêtes (doit être ajouté avant les routes)
+// Note: avec Sentry v10+, l'intégration Express se fait dans la config, pas ici
 
 // Middleware de sécurité
 app.use(helmet());
@@ -108,7 +119,11 @@ app.use((req, res) => {
   });
 });
 
-// Middleware de gestion d'erreurs global
+// Middleware Sentry pour capturer les erreurs — doit être ajouté
+// après les routes et avant votre handler d'erreur personnalisé
+app.use(Sentry.expressErrorHandler());
+
+// Middleware de gestion d'erreurs global (votre handler personnalisé)
 app.use((err, req, res, _next) => {
   console.error('Erreur:', err.stack);
   res.status(500).json({
@@ -118,7 +133,7 @@ app.use((err, req, res, _next) => {
 });
 
 // Démarrage du serveur
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Serveur démarré sur le port ${PORT}`);
   console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📡 API disponible sur: http://localhost:${PORT}`);
