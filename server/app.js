@@ -17,8 +17,11 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Connexion à la base de données
-connectDB();
+// Connexion à la base de données avec gestion d'erreur
+connectDB().catch(error => {
+  console.error('Impossible de se connecter à la base de données:', error);
+  process.exit(1);
+});
 
 // Middleware de sécurité
 app.use(helmet());
@@ -92,12 +95,12 @@ app.get('/health', (req, res) => {
 // Servir les fichiers statiques du client (frontend)
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
-// Toutes les autres routes renvoient vers l'application Vue (SPA routing)
-app.get("*", (req, res) => {
+// Toutes les autres routes non-API renvoient vers l'application Vue (SPA routing)
+app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 
-// Gestion des erreurs 404
+// Gestion des erreurs 404 pour les routes API
 app.use((req, res) => {
   res.status(404).json({
     error: 'Route non trouvée',
