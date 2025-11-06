@@ -89,6 +89,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Servir les fichiers statiques du client (frontend)
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// Toutes les autres routes renvoient vers l'application Vue (SPA routing)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
+
 // Gestion des erreurs 404
 app.use((req, res) => {
   res.status(404).json({
