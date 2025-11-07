@@ -53,6 +53,12 @@ RUN pnpm install --frozen-lockfile
 COPY client/ ./client/
 COPY server/ ./server/
 
+# S'assurer que les dépendances sont installées dans chaque sous-projet
+WORKDIR /app/server
+RUN pnpm install --frozen-lockfile
+WORKDIR /app/client  
+RUN pnpm install --frozen-lockfile
+
 # Commande par défaut pour les tests (tests backend)
 WORKDIR /app/server
 CMD ["pnpm", "test"]

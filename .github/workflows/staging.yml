@@ -22,12 +22,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        # Désactiver le cache pour éviter les problèmes Rollup
-        # cache: 'npm'
+        cache: 'pnpm'
+        cache-dependency-path: 'pnpm-lock.yaml'
     
     - name: Generate build version
       id: version
@@ -38,18 +43,11 @@ jobs:
     
     # Build Frontend pour staging
     - name: Install workspace dependencies
-      run: |
-        # Nettoyer complètement pour éviter les problèmes Rollup avec workspaces
-        rm -rf node_modules package-lock.json
-        npm install
-        # Forcer la réinstallation des binaires natifs Rollup
-        npm rebuild
-        # Installation spécifique de Rollup avec ses binaires natifs
-        npm install @rollup/rollup-linux-x64-gnu --optional --no-save
+      run: pnpm install
     
     - name: Build frontend for staging
       working-directory: ./client
-      run: npm run build
+      run: pnpm run build
       env:
         NODE_ENV: staging
         VITE_API_URL: ${{ secrets.STAGING_API_URL }}
@@ -64,7 +62,7 @@ jobs:
     # Prepare Backend pour staging
     - name: Install backend dependencies
       working-directory: ./server
-      run: npm ci
+      run: pnpm install
     
     - name: Create backend staging bundle
       working-directory: ./server
@@ -94,15 +92,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+        cache: 'pnpm'
+        cache-dependency-path: 'server/pnpm-lock.yaml'
     
     - name: Install backend dependencies
       working-directory: ./server
-      run: npm ci
+      run: pnpm install
     
     - name: Run staging database migrations
       working-directory: ./server

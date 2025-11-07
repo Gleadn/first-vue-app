@@ -34,6 +34,14 @@ jobs:
     - name: Install workspace dependencies
       run: pnpm install
     
+    - name: Install backend dependencies
+      working-directory: ./server
+      run: pnpm install
+    
+    - name: Install frontend dependencies  
+      working-directory: ./client
+      run: pnpm install
+    
     - name: Lint backend code
       working-directory: ./server
       run: pnpm run lint
