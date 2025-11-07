@@ -19,6 +19,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
@@ -26,27 +31,12 @@ jobs:
         cache: 'pnpm'
         cache-dependency-path: 'pnpm-lock.yaml'
     
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
-    
-    - name: Install backend dependencies
-      working-directory: ./server
+    - name: Install workspace dependencies
       run: pnpm install
     
     - name: Lint backend code
       working-directory: ./server
       run: pnpm run lint
-    
-    - name: Install workspace dependencies for frontend
-      run: |
-        # Installer pnpm si pas déjà fait
-        npm install -g pnpm
-        # Installation des dépendances avec pnpm
-        pnpm install
-        # Rebuild pour forcer la réinstallation des binaires natifs
-        pnpm rebuild
     
     - name: Lint frontend code
       working-directory: ./client
@@ -76,17 +66,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'pnpm'
         cache-dependency-path: 'server/pnpm-lock.yaml'
-    
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
     
     - name: Install dependencies
       working-directory: ./server
@@ -121,17 +111,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'pnpm'
         cache-dependency-path: 'client/pnpm-lock.yaml'
-    
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
     
     - name: Install dependencies
       working-directory: ./client
@@ -160,17 +150,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'pnpm'
         cache-dependency-path: 'pnpm-lock.yaml'
-    
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
     
     - name: Install workspace dependencies
       run: pnpm install
@@ -195,16 +185,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    
     - name: Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'pnpm'
-    
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
     
     - name: Install backend dependencies
       working-directory: ./server
