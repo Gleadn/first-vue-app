@@ -23,30 +23,34 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        # Désactiver le cache pour éviter les problèmes Rollup frontend
-        # cache: 'npm'
+        cache: 'pnpm'
+        cache-dependency-path: 'pnpm-lock.yaml'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
     
     - name: Install backend dependencies
       working-directory: ./server
-      run: npm ci
+      run: pnpm install
     
     - name: Lint backend code
       working-directory: ./server
-      run: npm run lint
+      run: pnpm run lint
     
     - name: Install workspace dependencies for frontend
       run: |
-        # Nettoyer complètement pour éviter les problèmes Rollup avec workspaces
-        rm -rf node_modules package-lock.json
-        npm install
-        # Forcer la réinstallation des binaires natifs Rollup
-        npm rebuild
-        # Installation spécifique de Rollup avec ses binaires natifs
-        npm install @rollup/rollup-linux-x64-gnu --optional --no-save
+        # Installer pnpm si pas déjà fait
+        npm install -g pnpm
+        # Installation des dépendances avec pnpm
+        pnpm install
+        # Rebuild pour forcer la réinstallation des binaires natifs
+        pnpm rebuild
     
     - name: Lint frontend code
       working-directory: ./client
-      run: npm run lint
+      run: pnpm run lint
 
   test-backend:
     name: Backend Tests
@@ -76,11 +80,17 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: 'server/pnpm-lock.yaml'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
     
     - name: Install dependencies
-      run: npm ci
+      working-directory: ./server
+      run: pnpm install
     
     - name: Wait for MongoDB
       run: |
@@ -88,7 +98,7 @@ jobs:
     
     - name: Run backend tests with coverage
       working-directory: ./server
-      run: npm run test:coverage
+      run: pnpm run test:coverage
       env:
         NODE_ENV: test
         MONGODB_URI: mongodb://admin:password@localhost:27017/restaurant_db_test?authSource=admin
@@ -115,15 +125,21 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: 'client/pnpm-lock.yaml'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
     
     - name: Install dependencies
-      run: npm ci
+      working-directory: ./client
+      run: pnpm install
     
     - name: Run frontend tests with coverage
       working-directory: ./client
-      run: npm run test:coverage
+      run: pnpm run test:coverage
       env:
         NODE_ENV: test
     
@@ -148,23 +164,20 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        # Désactiver le cache pour éviter les problèmes Rollup
-        # cache: 'npm'
-        # cache-dependency-path: client/package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: 'pnpm-lock.yaml'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
     
     - name: Install workspace dependencies
-      run: |
-        # Nettoyer complètement pour éviter les problèmes Rollup avec workspaces
-        rm -rf node_modules package-lock.json
-        npm install
-        # Forcer la réinstallation des binaires natifs Rollup
-        npm rebuild
-        # Installation spécifique de Rollup avec ses binaires natifs
-        npm install @rollup/rollup-linux-x64-gnu --optional --no-save
+      run: pnpm install
     
     - name: Build frontend application
       working-directory: ./client
-      run: npm run build
+      run: pnpm run build
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -186,24 +199,29 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+        cache: 'pnpm'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
     
     - name: Install backend dependencies
       working-directory: ./server
-      run: npm ci
+      run: pnpm install
     
     - name: Run backend security audit
       working-directory: ./server
-      run: npm audit --audit-level=moderate
+      run: pnpm audit --audit-level=moderate
       continue-on-error: true
     
     - name: Install frontend dependencies
       working-directory: ./client
-      run: npm ci
+      run: pnpm install
     
     - name: Run frontend security audit
       working-directory: ./client
-      run: npm audit --audit-level=moderate
+      run: pnpm audit --audit-level=moderate
       continue-on-error: true
 
   notify:

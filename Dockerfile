@@ -5,15 +5,19 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 
-# Copier les fichiers du workspace racine
-COPY package*.json ./
+# Installer pnpm
+RUN npm install -g pnpm
+
+# Copier les fichiers de verrouillage
+COPY pnpm-lock.yaml ./
 COPY client/package.json ./client/
+COPY package.json ./
 
 # Installer toutes les dépendances du workspace (y compris devDependencies pour le build)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Forcer la réinstallation des binaires Rollup pour éviter les problèmes natifs
-RUN npm rebuild
+RUN pnpm rebuild
 
 # Copier les fichiers de configuration client
 COPY client/vite.config.mjs ./client/
@@ -26,20 +30,24 @@ COPY client/index.html ./client/
 
 # Builder le frontend
 WORKDIR /app/client
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Test stage (optionnel pour CI)
 FROM node:20-alpine AS test
 
 WORKDIR /app
 
-# Copier les fichiers package du workspace racine
-COPY package*.json ./
+# Installer pnpm
+RUN npm install -g pnpm
+
+# Copier les fichiers de verrouillage
+COPY pnpm-lock.yaml ./
 COPY client/package.json ./client/
 COPY server/package.json ./server/
+COPY package.json ./
 
 # Installer toutes les dépendances du workspace (y compris devDependencies pour les tests)
-RUN npm ci --include=dev
+RUN pnpm install --frozen-lockfile
 
 # Copier le code source après installation
 COPY client/ ./client/
@@ -47,7 +55,7 @@ COPY server/ ./server/
 
 # Commande par défaut pour les tests (tests backend)
 WORKDIR /app/server
-CMD ["npm", "test"]
+CMD ["pnpm", "test"]
 
 # Stage 3: Production
 FROM node:20-alpine AS production
@@ -65,10 +73,14 @@ WORKDIR /app
 RUN chown -R express:nodejs /app
 USER express
 
+# Installer pnpm
+RUN npm install -g pnpm
+
 # Copier les fichiers du workspace et installer toutes les dépendances
-COPY --chown=express:nodejs package*.json ./
+COPY --chown=express:nodejs pnpm-lock.yaml ./
+COPY --chown=express:nodejs package.json ./
 COPY --chown=express:nodejs server/package.json ./server/
-RUN npm ci --only=production && npm cache clean --force
+RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 
 # Copier le code serveur
 COPY --chown=express:nodejs server/ ./server/

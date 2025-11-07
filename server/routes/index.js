@@ -2,6 +2,7 @@ import express from 'express';
 import typeRestaurantsRoutes from './typeRestaurants.js';
 import restaurantsRoutes from './restaurants.js';
 import menuItemsRoutes from './menuItems.js';
+import testRoutes from './test.js';
 
 const router = express.Router();
 
@@ -9,6 +10,9 @@ const router = express.Router();
 router.use('/type-restaurants', typeRestaurantsRoutes);
 router.use('/restaurants', restaurantsRoutes);
 router.use('/menu-items', menuItemsRoutes);
+
+// Routes de test pour Sentry
+router.use('/test', testRoutes);
 
 // Route de test API
 router.get('/health', (req, res) => {

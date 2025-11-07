@@ -76,6 +76,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Route de test Sentry temporaire - à supprimer après validation
+app.get('/api/test-sentry', (_req, _res) => {
+  console.log('🧪 Test Sentry: génération d\'une erreur pour validation...');
+  throw new Error('Test Sentry - Erreur générée le ' + new Date().toISOString());
+});
+
 // Routes de base
 app.get('/', (req, res) => {
   res.json({

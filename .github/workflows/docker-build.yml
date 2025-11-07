@@ -80,7 +80,7 @@ jobs:
     
     - name: Run tests in Docker
       run: |
-        docker run --rm ${{ env.IMAGE_NAME }}:test npm test
+        docker run --rm ${{ env.IMAGE_NAME }}:test pnpm test
     
     - name: Build and push to GitHub Container Registry
       if: github.event_name != 'pull_request'

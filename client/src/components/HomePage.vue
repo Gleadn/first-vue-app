@@ -1,5 +1,17 @@
 <template>
   <div class="home-container">
+    <!-- Bouton de test Sentry temporaire -->
+    <div style="position: fixed; top: 10px; right: 10px; z-index: 9999;">
+      <v-btn 
+        color="error" 
+        size="small" 
+        @click="testSentryError"
+        style="margin-right: 8px;"
+      >
+        🧪 Test Sentry
+      </v-btn>
+    </div>
+    
     <TypeRestaurant @restaurant-type-selected="handleRestaurantTypeSelected" />
     <div class="home-content">
       <div v-if="selectedRestaurantType" class="selected-type">
@@ -36,6 +48,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useCart } from '@/composables/useCart'
+import { Sentry } from '@/plugins/sentry'
 // Import du fichier de styles
 import '@/styles/HomePage.css'
 import TypeRestaurant from './TypeRestaurant.vue'
@@ -107,6 +120,18 @@ const handleAddToCart = (menuItem) => {
 // Fonction pour cacher la notification
 const hideNotification = () => {
   isNotificationVisible.value = false
+}
+
+// Fonction de test Sentry temporaire
+const testSentryError = () => {
+  console.log('🧪 Test Sentry Vue: génération d\'une erreur...')
+  try {
+    Sentry.captureException(new Error('Test Sentry Vue - Erreur générée le ' + new Date().toISOString()))
+    // Afficher un message de confirmation dans la console
+    console.log('✅ Erreur envoyée à Sentry')
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi à Sentry:', error)
+  }
 }
 
 // Exposer la fonction openCartModal pour que le parent puisse l'utiliser
